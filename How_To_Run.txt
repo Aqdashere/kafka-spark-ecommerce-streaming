@@ -1,0 +1,108 @@
+HOW TO RUN THE PROJECT
+
+This project runs a real-time e-commerce analytics pipeline using
+Apache Kafka, Apache Spark Structured Streaming, and Docker.
+
+REQUIREMENTS
+
+Docker
+Docker Compose
+Python 3.8+
+Internet access (for Spark Kafka package download)
+
+STEP 1, START DOCKER CONTAINERS
+
+From the project root directory:
+
+docker compose up -d
+
+Verify containers are running:
+
+docker ps
+
+You should see:
+
+kafka
+zookeeper
+spark
+
+STEP 2, CREATE KAFKA TOPICS
+
+Create the orders topic:
+
+docker exec kafka kafka-topics --create
+--topic orders
+--bootstrap-server localhost:9092
+--replication-factor 1
+--partitions 1
+
+Create the alerts topic:
+
+docker exec kafka kafka-topics --create
+--topic alerts
+--bootstrap-server localhost:9092
+--replication-factor 1
+--partitions 1
+
+STEP 3, CLEAN OUTPUT (OPTIONAL)
+
+If you want fresh output:
+
+docker exec spark rm -rf /app/output
+docker exec spark mkdir -p /app/output/checkpoints
+
+STEP 4, START SPARK STREAMING JOBS
+
+Start High-Value Order Alerts:
+
+docker exec -it spark /opt/spark/bin/spark-submit
+--packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1
+spark/spark_orders_alerts.py
+
+(Open a new terminal for the next job)
+
+Start Revenue Aggregation Job:
+
+docker exec -it spark /opt/spark/bin/spark-submit
+--packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1
+spark/spark_orders_window_category_parquet.py
+
+STEP 5, RUN THE KAFKA PRODUCER
+
+From your local machine:
+
+cd producer
+python spark_order_producer.py
+
+This will stream orders into Kafka at high speed.
+
+STEP 6, RUN ALERT CONSUMER
+
+From another terminal:
+
+cd consumer
+python consumer_alerts.py
+
+You will see real-time alerts printed on the screen.
+
+STEP 7, RUN BATCH ANALYTICS
+
+After streaming finishes:
+
+docker exec -it spark /opt/spark/bin/spark-submit
+spark/spark_batch_revenue_analysis.py
+
+This reads Parquet output and shows total revenue per category.
+
+STEP 8, STOP EVERYTHING
+
+To stop containers:
+
+docker compose down
+
+NOTES
+
+Spark streaming jobs run continuously until stopped manually
+Alerts may reappear if Kafka offsets are not reset
+Checkpoint folders are required for fault tolerance
+Parquet output is stored inside the Spark container
