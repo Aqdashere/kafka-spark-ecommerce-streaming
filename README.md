@@ -3,7 +3,7 @@ Real-Time E-Commerce Analytics with Kafka and Spark
 A production-style real-time data streaming pipeline built using Apache Kafka and Apache Spark Structured Streaming.
 This project simulates large-scale e-commerce order processing, real-time alerting, and analytical aggregation.
 
-🚀 Project Overview
+Project Overview
 
 This project processes high-volume streaming data and performs:
 Real-time ingestion of e-commerce orders
